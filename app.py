@@ -15,16 +15,6 @@ app.config['SECRET_KEY'] = 'apppulse-secret-key-2024'
 # =============================================================================
 # DATA LOADING
 # =============================================================================
-# =============================================================================
-# MAIN
-# =============================================================================
-
-# Load data when module is imported (required for Gunicorn)
-load_data()
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5001))
-    app.run(host='0.0.0.0', port=port, debug=True)
 DATA = {}
 
 def load_data():
@@ -411,7 +401,9 @@ def server_error(error):
 # MAIN
 # =============================================================================
 
+# Load data when module is imported (required for Gunicorn)
+load_data()
+
 if __name__ == '__main__':
-    load_data()
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=True)
