@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Rating - AppPulse{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 200px;">
+    <div class="container">
+        <h1 class="text-white mb-3">
+            <i class="fas fa-magic"></i> Predict App Rating
+        </h1>
+        <p class="text-white-50 lead">Enter app details to get an AI-powered rating prediction</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Prediction Form Card -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h4 class="mb-4"><i class="fas fa-edit"></i> App Details</h4>
+                    
+                    <form id="predictForm">
+                        <div class="row">
+                            <!-- Category -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Category *</label>
+                                <select class="form-select form-select-lg" id="category" required>
+                                    <option value="">Select category...</option>
+                                    {% for category in categories %}
+                                    <option value="{{category}}">{{category}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Type -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Type *</label>
+                                <select class="form-select form-select-lg" id="type" required>
+                                    <option value="Free">Free</option>
+                                    <option value="Paid">Paid</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Size -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Size (MB) *</label>
+                                <input type="number" class="form-control form-control-lg" 
+                                       id="size" placeholder="e.g., 25" min="1" max="500" 
+                                       value="20" required>
+                                <small class="text-muted">Typical range: 1-100 MB</small>
+                            </div>
+                            
+                            <!-- Price -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Price ($)</label>
+                                <input type="number" class="form-control form-control-lg" 
+                                       id="price" placeholder="e.g., 2.99" min="0" max="100" 
+                                       step="0.01" value="0">
+                                <small class="text-muted">Leave 0 for free apps</small>
+                            </div>
+                            
+                            <!-- Installs -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Expected Installs *</label>
+                                <select class="form-select form-select-lg" id="installs" required>
+                                    <option value="100">100+ (New)</option>
+                                    <option value="1000">1,000+ (Growing)</option>
+                                    <option value="10000" selected>10,000+ (Popular)</option>
+                                    <option value="100000">100,000+ (Very Popular)</option>
+                                    <option value="1000000">1,000,000+ (Viral)</option>
+                                    <option value="10000000">10,000,000+ (Top App)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Reviews -->
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Expected Reviews *</label>
+                                <input type="number" class="form-control form-control-lg" 
+                                       id="reviews" placeholder="e.g., 500" min="0" 
+                                       value="100" required>
+                                <small class="text-muted">Typically 1-5% of installs</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-line"></i> Predict Rating
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="fas fa-redo"></i> Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Results Card (Hidden initially) -->
+            <div id="resultsCard" class="card shadow-lg border-0 mt-4" style="display: none;">
+                <div class="card-body p-5 text-center prediction-result">
+                    <h3 class="text-white mb-3">Predicted Rating</h3>
+                    <div class="display-1 fw-bold text-white mb-3" id="predictedRating">
+                        <i class="fas fa-star"></i> 4.2
+                    </div>
+                    <p class="text-white-50 mb-0">Based on AI analysis of app features</p>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn-light btn-lg" id="predictAnother">
+                            <i class="fas fa-redo"></i> Predict Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Card -->
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-info-circle"></i> How it works</h6>
+                    <ul class="mb-0">
+                        <li>Our AI model analyzes your app's features</li>
+                        <li>Trained on 8,196 real apps with 25 features</li>
+                        <li>Prediction accuracy: ±0.48 stars (90.4% accurate)</li>
+                        <li>Uses XGBoost machine learning algorithm</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Type change - enable/disable price
+    $('#type').change(function() {
+        if ($(this).val() === 'Free') {
+            $('#price').val(0).prop('disabled', true);
+        } else {
+            $('#price').prop('disabled', false);
+        }
+    });
+    
+    // Form submission
+    $('#predictForm').submit(function(e) {
+        e.preventDefault();
+        
+        const data = {
+            category: $('#category').val(),
+            reviews: parseInt($('#reviews').val()),
+            size_mb: parseFloat($('#size').val()),
+            installs: parseInt($('#installs').val()),
+            price: parseFloat($('#price').val())
+        };
+        
+        // Show loading
+        const btn = $(this).find('button[type="submit"]');
+        const btnText = btn.html();
+        btn.html('<span class="spinner-border spinner-border-sm"></span> Predicting...').prop('disabled', true);
+        
+        // Make prediction
+        $.ajax({
+            url: '/api/predict',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                // Show results
+                $('#predictedRating').html(`<i class="fas fa-star"></i> ${response.predicted_rating}`);
+                $('#resultsCard').fadeIn();
+                
+                // Scroll to results
+                $('html, body').animate({
+                    scrollTop: $('#resultsCard').offset().top - 100
+                }, 500);
+                
+                // Reset button
+                btn.html(btnText).prop('disabled', false);
+            },
+            error: function(xhr) {
+                alert('Prediction failed. Please try again.');
+                btn.html(btnText).prop('disabled', false);
+            }
+        });
+    });
+    
+    // Predict another
+    $('#predictAnother').click(function() {
+        $('#resultsCard').fadeOut();
+        $('html, body').animate({
+            scrollTop: $('#predictForm').offset().top - 100
+        }, 500);
+    });
+    
+    // Reset button
+    $('button[type="reset"]').click(function() {
+        $('#resultsCard').fadeOut();
+        $('#price').prop('disabled', false);
+    });
+});
+</script>
+{% endblock %}

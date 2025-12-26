@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}AppPulse - Discover Your Next App{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Purple Background -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 4rem 0; margin-bottom: 3rem;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 text-white">
+                <h1 class="display-4 fw-bold mb-3">Discover Your Next Favorite App</h1>
+                <p class="lead mb-4">AI-powered recommendations from {{total_apps}} apps</p>
+                
+                <!-- Search Bar -->
+                <div class="search-container mt-4">
+                    <form action="/search" method="GET" id="heroSearchForm">
+                        <div class="input-group input-group-lg">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="heroSearchInput" 
+                                   name="q"
+                                   placeholder="Search for apps..." 
+                                   autocomplete="off"
+                                   style="border-radius: 50px 0 0 50px; padding: 1rem 1.5rem;">
+                            <button class="btn btn-light" type="submit" style="border-radius: 0 50px 50px 0; padding: 0 2rem;">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                        <!-- Autocomplete results -->
+                        <div id="autocompleteResults" class="autocomplete-results"></div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center text-white">
+                <i class="fas fa-mobile-alt" style="font-size: 10rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="container my-5">
+    <div class="row text-center" id="statsRow">
+        <div class="col-md-3 mb-4">
+            <div class="stat-card p-4" style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <i class="fas fa-mobile-alt fa-3x mb-3" style="color: #6C63FF;"></i>
+                <h3 id="statTotalApps" style="color: #2C3E50; font-weight: 700;">9,660</h3>
+                <p class="text-muted">Total Apps</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card p-4" style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <i class="fas fa-folder fa-3x mb-3" style="color: #10B981;"></i>
+                <h3 id="statCategories" style="color: #2C3E50; font-weight: 700;">34</h3>
+                <p class="text-muted">Categories</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card p-4" style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <i class="fas fa-star fa-3x mb-3" style="color: #F59E0B;"></i>
+                <h3 id="statAvgRating" style="color: #2C3E50; font-weight: 700;">4.17 ⭐</h3>
+                <p class="text-muted">Average Rating</p>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stat-card p-4" style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <i class="fas fa-comments fa-3x mb-3" style="color: #3B82F6;"></i>
+                <h3 id="statTotalReviews" style="color: #2C3E50; font-weight: 700;">2094.1M</h3>
+                <p class="text-muted">Total Reviews</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Apps -->
+<div class="container my-5">
+    <h2 class="mb-4" style="color: #2C3E50; font-weight: 700;">
+        <i class="fas fa-fire" style="color: #EF4444;"></i> Featured Apps
+    </h2>
+    <div class="row" id="featuredApps">
+        <!-- Loading spinner -->
+        <div class="col-12 text-center">
+            <div class="spinner-border" style="color: #6C63FF;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Browse by Category -->
+<div class="container my-5">
+    <h2 class="mb-4" style="color: #2C3E50; font-weight: 700;">
+        <i class="fas fa-th"></i> Browse by Category
+    </h2>
+    <div class="row">
+        {% for category in categories[:12] %}
+        <div class="col-md-3 mb-3">
+            <a href="/search?category={{category}}" class="text-decoration-none">
+                <div class="card h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: all 0.3s ease;">
+                    <div class="card-body text-center">
+                        <i class="fas fa-folder fa-2x mb-2" style="color: #6C63FF;"></i>
+                        <h6 class="mb-0" style="color: #2C3E50;">{{category}}</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% if categories|length > 12 %}
+    <div class="text-center mt-3">
+        <a href="/search" class="btn btn-outline-primary" style="border-radius: 10px; padding: 0.6rem 1.5rem;">View All Categories</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Features Section -->
+<div style="background: #F5F7FA; padding: 4rem 0;">
+    <div class="container">
+        <h2 class="text-center mb-5" style="color: #2C3E50; font-weight: 700;">Why AppPulse?</h2>
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-brain fa-3x mb-3" style="color: #6C63FF;"></i>
+                <h4 style="color: #2C3E50;">AI-Powered</h4>
+                <p class="text-muted">Machine learning models predict app ratings with 82% accuracy</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-chart-line fa-3x mb-3" style="color: #10B981;"></i>
+                <h4 style="color: #2C3E50;">Smart Recommendations</h4>
+                <p class="text-muted">Find apps similar to your favorites based on advanced features</p>
+            </div>
+            <div class="col-md-4 text-center mb-4">
+                <i class="fas fa-database fa-3x mb-3" style="color: #3B82F6;"></i>
+                <h4 style="color: #2C3E50;">Comprehensive Data</h4>
+                <p class="text-muted">Analysis of thousands of apps with sentiment and performance metrics</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load stats
+    $.get('/api/stats', function(data) {
+        $('#statTotalApps').text(data.total_apps.toLocaleString());
+        $('#statCategories').text(data.total_categories);
+        $('#statAvgRating').html(data.avg_rating + ' ⭐');
+        $('#statTotalReviews').text((data.total_reviews / 1000000).toFixed(1) + 'M');
+    });
+    
+    // Load featured apps
+    $.get('/api/featured', function(apps) {
+        let html = '';
+        apps.forEach(function(app) {
+            html += `
+                <div class="col-md-3 mb-4">
+                    <a href="/app/${encodeURIComponent(app.App)}" class="text-decoration-none">
+                        <div class="card h-100" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: all 0.3s ease;">
+                            <div class="card-body">
+                                <h6 class="card-title text-truncate" style="color: #2C3E50;" title="${app.App}">${app.App}</h6>
+                                <p class="text-muted small mb-2"><i class="fas fa-folder"></i> ${app.Category}</p>
+                                ${app.Rating ? `
+                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: inline-flex; align-items: center; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600;">
+                                        <i class="fas fa-star"></i> ${app.Rating.toFixed(1)}
+                                    </div>
+                                    <p class="text-muted small mt-2"><i class="fas fa-comments"></i> ${app.Reviews.toLocaleString()} reviews</p>
+                                ` : ''}
+                                <span class="badge mt-2" style="background: ${app.Type === 'Free' ? '#10B981' : '#F59E0B'}; color: white; padding: 0.35rem 0.8rem; border-radius: 15px;">
+                                    ${app.Type}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            `;
+        });
+        $('#featuredApps').html(html);
+    });
+    
+    // Autocomplete for search
+    let autocompleteTimeout;
+    $('#heroSearchInput').on('input', function() {
+        clearTimeout(autocompleteTimeout);
+        const query = $(this).val().trim();
+        
+        if (query.length < 2) {
+            $('#autocompleteResults').hide();
+            return;
+        }
+        
+        autocompleteTimeout = setTimeout(function() {
+            $.get('/api/autocomplete', {q: query}, function(suggestions) {
+                if (suggestions.length === 0) {
+                    $('#autocompleteResults').hide();
+                    return;
+                }
+                
+                let html = '<div class="list-group" style="position: absolute; z-index: 1000; width: 100%; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-top: 0.5rem;">';
+                suggestions.forEach(function(item) {
+                    html += `
+                        <a href="/app/${encodeURIComponent(item.app)}" class="list-group-item list-group-item-action" style="border: none;">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>${item.app}</strong>
+                                    <br><small class="text-muted">${item.category}</small>
+                                </div>
+                                ${item.rating ? `<span style="background: #F59E0B; color: white; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.875rem;">${item.rating.toFixed(1)} ⭐</span>` : ''}
+                            </div>
+                        </a>
+                    `;
+                });
+                html += '</div>';
+                
+                $('#autocompleteResults').html(html).show();
+            });
+        }, 300);
+    });
+    
+    // Hide autocomplete when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.search-container').length) {
+            $('#autocompleteResults').hide();
+        }
+    });
+});
+</script>
+{% endblock %}

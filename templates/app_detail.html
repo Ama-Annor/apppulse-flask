@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app.App }} - AppPulse{% endblock %}
+
+{% block content %}
+<!-- App Hero Section -->
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem 0; margin-bottom: 2rem;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-white">
+                <h1 class="display-5 fw-bold mb-2">{{ app.App }}</h1>
+                <p class="mb-0">
+                    <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 15px; display: inline-block;">
+                        <i class="fas fa-folder"></i> {{ app.Category }}
+                    </span>
+                    <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 15px; display: inline-block; margin-left: 0.5rem;">
+                        {{ app.Type }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+    <div class="row">
+        <!-- Left Column - App Stats -->
+        <div class="col-lg-8">
+            <!-- Rating Card -->
+            <div class="card mb-4" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50; font-weight: 600;">
+                        <i class="fas fa-chart-bar"></i> App Statistics
+                    </h5>
+                    
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <i class="fas fa-star fa-2x mb-2" style="color: #F59E0B;"></i>
+                            <h4 style="color: #2C3E50; font-weight: 700;">{{ app.Rating|default('N/A') }}</h4>
+                            <p class="text-muted small mb-0">Rating</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-download fa-2x mb-2" style="color: #3B82F6;"></i>
+                            <h4 style="color: #2C3E50; font-weight: 700;">
+                                {% if app.Installs %}
+                                    {% if app.Installs >= 1000000 %}
+                                        {{ (app.Installs / 1000000)|round(1) }}M
+                                    {% elif app.Installs >= 1000 %}
+                                        {{ (app.Installs / 1000)|round(1) }}K
+                                    {% else %}
+                                        {{ app.Installs }}
+                                    {% endif %}
+                                {% else %}
+                                    0K
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted small mb-0">Installs</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-comments fa-2x mb-2" style="color: #10B981;"></i>
+                            <h4 style="color: #2C3E50; font-weight: 700;">
+                                {% if app.Reviews %}
+                                    {% if app.Reviews >= 1000000 %}
+                                        {{ (app.Reviews / 1000000)|round(1) }}M
+                                    {% elif app.Reviews >= 1000 %}
+                                        {{ (app.Reviews / 1000)|round(1) }}K
+                                    {% else %}
+                                        {{ app.Reviews }}
+                                    {% endif %}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted small mb-0">Reviews</p>
+                        </div>
+                        <div class="col-3">
+                            <i class="fas fa-hdd fa-2x mb-2" style="color: #8B5CF6;"></i>
+                            <h4 style="color: #2C3E50; font-weight: 700;">{{ app.Size_MB|default('N/A') }}</h4>
+                            <p class="text-muted small mb-0">MB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Prediction Card -->
+            {% if app.predicted_rating %}
+            <div class="card mb-4" style="border: none; border-radius: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <h5 class="mb-3">
+                        <i class="fas fa-robot"></i> AI Prediction
+                    </h5>
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h2 class="display-3 fw-bold mb-0">{{ app.predicted_rating }}</h2>
+                            <p class="mb-0">Predicted Rating</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><i class="fas fa-check-circle"></i> Machine Learning Model</p>
+                            <p class="mb-0"><i class="fas fa-chart-line"></i> 36.34% R² Accuracy</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Sentiment Card -->
+            {% if app.sentiment_polarity or app.positive_percentage %}
+            <div class="card mb-4" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50; font-weight: 600;">
+                        <i class="fas fa-smile"></i> User Sentiment
+                    </h5>
+                    
+                    {% if app.sentiment_polarity %}
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Overall Sentiment</label>
+                        <div class="progress" style="height: 25px; border-radius: 15px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ ((app.sentiment_polarity + 1) / 2 * 100)|round }}%; 
+                                        background: linear-gradient(90deg, #EF4444 0%, #F59E0B 50%, #10B981 100%);">
+                                {{ (app.sentiment_polarity * 100)|round }}%
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-danger">Negative</small>
+                            <small class="text-muted">Neutral</small>
+                            <small class="text-success">Positive</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if app.positive_percentage %}
+                    <p class="mb-0">
+                        <i class="fas fa-thumbs-up text-success"></i> 
+                        <strong>{{ app.positive_percentage|round }}%</strong> positive reviews
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Similar Apps -->
+            <div class="card" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50; font-weight: 600;">
+                        <i class="fas fa-th"></i> Similar Apps
+                    </h5>
+                    <div class="row" id="similarApps">
+                        <div class="col-12 text-center py-3">
+                            <div class="spinner-border" style="color: #6C63FF;" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - App Info -->
+        <div class="col-lg-4">
+            <div class="card" style="border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: sticky; top: 20px;">
+                <div class="card-body">
+                    <h5 class="mb-3" style="color: #2C3E50; font-weight: 600;">
+                        <i class="fas fa-info-circle"></i> App Information
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Category</label>
+                        <p class="mb-0 fw-semibold">{{ app.Category }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Content Rating</label>
+                        <p class="mb-0 fw-semibold">{{ app.Content_Rating }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Type</label>
+                        <p class="mb-0">
+                            <span class="badge" style="background: {{ '#10B981' if app.Type == 'Free' else '#F59E0B' }}; color: white; padding: 0.4rem 0.8rem; border-radius: 15px;">
+                                {{ app.Type }}
+                            </span>
+                        </p>
+                    </div>
+                    
+                    {% if app.Price and app.Price > 0 %}
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Price</label>
+                        <p class="mb-0 fw-semibold">${{ app.Price }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Size</label>
+                        <p class="mb-0 fw-semibold">{{ app.Size_MB|default('Varies') }} MB</p>
+                    </div>
+                    
+                    {% if app.Last_Updated %}
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Last Updated</label>
+                        <p class="mb-0 fw-semibold">{{ app.Last_Updated }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if app.Genres %}
+                    <div class="mb-0">
+                        <label class="small text-muted mb-1">Genres</label>
+                        <p class="mb-0 fw-semibold">{{ app.Genres }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load similar apps
+fetch('/api/similar/{{ app.App }}?limit=6')
+    .then(response => response.json())
+    .then(apps => {
+        const container = document.getElementById('similarApps');
+        
+        if (apps.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No similar apps found</p></div>';
+            return;
+        }
+        
+        container.innerHTML = apps.map(app => `
+            <div class="col-md-6 mb-3">
+                <a href="/app/${encodeURIComponent(app.App)}" class="text-decoration-none">
+                    <div class="card h-100" style="border: 1px solid #E5E7EB; border-radius: 10px; transition: all 0.3s ease;">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 text-truncate" style="color: #2C3E50; flex: 1;" title="${app.App}">${app.App}</h6>
+                                ${app.similarity_score ? `<span class="badge" style="background: #6C63FF; color: white; font-size: 0.7rem;">${app.similarity_score}% match</span>` : ''}
+                            </div>
+                            <p class="text-muted small mb-2"><i class="fas fa-folder"></i> ${app.Category}</p>
+                            ${app.Rating ? `
+                                <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: inline-flex; align-items: center; padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                                    <i class="fas fa-star"></i> ${app.Rating.toFixed(1)}
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `).join('');
+    })
+    .catch(error => {
+        console.error('Error loading similar apps:', error);
+        document.getElementById('similarApps').innerHTML = 
+            '<div class="col-12 text-center"><p class="text-muted">Error loading similar apps</p></div>';
+    });
+</script>
+{% endblock %}

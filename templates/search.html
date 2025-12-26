@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Apps - AppPulse{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 200px;">
+    <div class="container">
+        <h1 class="text-white mb-4">
+            <i class="fas fa-search"></i> Browse Apps
+        </h1>
+        
+        <!-- Search Bar -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="input-group input-group-lg">
+                    <input type="text" 
+                           class="form-control" 
+                           id="searchInput" 
+                           placeholder="Search for apps..." 
+                           autocomplete="off">
+                    <button class="btn btn-light" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3">
+            <div class="filter-sidebar">
+                <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
+                
+                <!-- Category Filter -->
+                <div class="filter-section">
+                    <label class="form-label fw-bold">Category</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{category}}">{{category}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Type Filter -->
+                <div class="filter-section">
+                    <label class="form-label fw-bold">Type</label>
+                    <select class="form-select" id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="Free">Free</option>
+                        <option value="Paid">Paid</option>
+                    </select>
+                </div>
+                
+                <!-- Rating Filter -->
+                <div class="filter-section">
+                    <label class="form-label fw-bold">Minimum Rating</label>
+                    <select class="form-select" id="ratingFilter">
+                        <option value="">Any Rating</option>
+                        <option value="4.5">4.5+ ⭐</option>
+                        <option value="4.0">4.0+ ⭐</option>
+                        <option value="3.5">3.5+ ⭐</option>
+                        <option value="3.0">3.0+ ⭐</option>
+                    </select>
+                </div>
+                
+                <!-- Sort By -->
+                <div class="filter-section">
+                    <label class="form-label fw-bold">Sort By</label>
+                    <select class="form-select" id="sortFilter">
+                        <option value="rating">Highest Rated</option>
+                        <option value="reviews">Most Reviewed</option>
+                        <option value="installs">Most Installed</option>
+                        <option value="az">A-Z</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary w-100 mt-3" id="applyFilters">
+                    <i class="fas fa-check"></i> Apply Filters
+                </button>
+                
+                <button class="btn btn-outline-secondary w-100 mt-2" id="clearFilters">
+                    <i class="fas fa-times"></i> Clear All
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Area -->
+        <div class="col-md-9">
+            <div id="resultsHeader" class="mb-3">
+                <h4>All Apps</h4>
+            </div>
+            
+            <div id="resultsArea" class="row">
+                <!-- Loading spinner -->
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Loading apps...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let currentQuery = '';
+    
+    // Load initial apps
+    loadApps();
+    
+    // Search functionality
+    $('#searchBtn').click(function() {
+        currentQuery = $('#searchInput').val().trim();
+        if (currentQuery) {
+            searchApps(currentQuery);
+        } else {
+            loadApps();
+        }
+    });
+    
+    $('#searchInput').keypress(function(e) {
+        if (e.which === 13) {
+            $('#searchBtn').click();
+        }
+    });
+    
+    // Apply filters
+    $('#applyFilters').click(function() {
+        loadApps();
+    });
+    
+    // Clear filters
+    $('#clearFilters').click(function() {
+        $('#categoryFilter').val('');
+        $('#typeFilter').val('');
+        $('#ratingFilter').val('');
+        $('#sortFilter').val('rating');
+        $('#searchInput').val('');
+        currentQuery = '';
+        loadApps();
+    });
+    
+    function loadApps() {
+        const category = $('#categoryFilter').val();
+        const type = $('#typeFilter').val();
+        const minRating = $('#ratingFilter').val();
+        const sort = $('#sortFilter').val();
+        
+        $('#resultsArea').html(`
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-3 text-muted">Loading apps...</p>
+            </div>
+        `);
+        
+        $.get('/api/filter', {
+            category: category,
+            type: type,
+            min_rating: minRating,
+            sort: sort,
+            limit: 50
+        }, function(apps) {
+            displayApps(apps);
+        });
+    }
+    
+    function searchApps(query) {
+        $('#resultsArea').html(`
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-3 text-muted">Searching...</p>
+            </div>
+        `);
+        
+        $.get('/api/search', {q: query}, function(apps) {
+            $('#resultsHeader h4').text(`Search Results for "${query}"`);
+            displayApps(apps);
+        });
+    }
+    
+    function displayApps(apps) {
+        if (apps.length === 0) {
+            $('#resultsArea').html(`
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h4>No apps found</h4>
+                    <p class="text-muted">Try adjusting your filters or search query</p>
+                </div>
+            `);
+            return;
+        }
+        
+        let html = '';
+        apps.forEach(function(app) {
+            html += `
+                <div class="col-md-4 mb-4 fade-in">
+                    <a href="/app/${encodeURIComponent(app.App)}" class="text-decoration-none">
+                        <div class="card h-100 app-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate mb-2" title="${app.App}">
+                                    ${app.App}
+                                </h5>
+                                <p class="text-muted small mb-2">
+                                    <i class="fas fa-folder"></i> ${app.Category}
+                                </p>
+                                ${app.Rating ? `
+                                    <div class="mb-2">
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-star"></i> ${app.Rating.toFixed(1)}
+                                        </span>
+                                        <span class="text-muted small ms-2">
+                                            (${app.Reviews.toLocaleString()} reviews)
+                                        </span>
+                                    </div>
+                                ` : ''}
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge ${app.Type === 'Free' ? 'bg-success' : 'bg-primary'}">
+                                        ${app.Type}
+                                    </span>
+                                    ${app.Price > 0 ? `
+                                        <span class="text-success fw-bold">
+                                            $${app.Price.toFixed(2)}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            `;
+        });
+        
+        $('#resultsArea').html(html);
+    }
+});
+</script>
+{% endblock %}
